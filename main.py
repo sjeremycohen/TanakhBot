@@ -1,9 +1,12 @@
+import os
 import discord
+import requests
+from sefariaRef import api_url
+from parsingService import checkBook, textClean
+from formatService import formatEmbed
 
-intents = discord.Intents.default()
-intents.message_content = True
-
-client = discord.Client(intents=intents)
+client = discord.Client()
+token = os.environ['TOKEN']
 
 @client.event
 async def on_ready():
@@ -11,10 +14,11 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
-        return
+  if message.author == client.user:
+      return
+  info = checkBook(message.content)
+  if info != False:
+    embed = formatEmbed(requests.get(api_url + info[0] + "." + str(info[1])).json(), info)
+    await message.channel.send(embed=embed)
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
-
-client.run('')
+client.run(token)
